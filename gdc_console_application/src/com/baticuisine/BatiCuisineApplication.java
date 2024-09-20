@@ -6,10 +6,15 @@ import com.baticuisine.dao.*;
 
 public class BatiCuisineApplication {
     public static void main(String[] args) {
-        ClientService clientService = new ClientService(new ClientDAO());
-        ProjectService projectService = new ProjectService(new ProjectDAO());
-        ComponentService componentService = new ComponentService(new ComponentDAO());
-        QuoteService quoteService = new QuoteService(new QuoteDAO());
+        ClientDAO clientDAO = new ClientDAO();
+        ProjectDAO projectDAO = new ProjectDAO();
+        ComponentDAO componentDAO = new ComponentDAO();
+        QuoteDAO quoteDAO = new QuoteDAO();
+
+        ClientService clientService = new ClientService(clientDAO);
+        ProjectService projectService = new ProjectService(projectDAO, componentDAO);
+        ComponentService componentService = new ComponentService(componentDAO);
+        QuoteService quoteService = new QuoteService(quoteDAO, projectDAO, componentDAO);
 
         BatiCuisineUI ui = new BatiCuisineUI(clientService, projectService, componentService, quoteService);
         ui.start();
