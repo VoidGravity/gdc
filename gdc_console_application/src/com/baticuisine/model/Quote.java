@@ -2,17 +2,30 @@ package com.baticuisine.model;
 
 import java.time.LocalDate;
 
-public class Devis {
+public class Quote {
+    private int id;
     private double montantEstime;
     private LocalDate dateEmission;
     private LocalDate dateValidite;
     private boolean accepte;
+    private Project project;
 
-    public Devis(double montantEstime, LocalDate dateEmission, LocalDate dateValidite) {
+    public Quote() {}
+
+    public Quote(double montantEstime, LocalDate dateEmission, LocalDate dateValidite, Project project) {
         this.montantEstime = montantEstime;
         this.dateEmission = dateEmission;
         this.dateValidite = dateValidite;
         this.accepte = false;
+        this.project = project;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public double getMontantEstime() {
@@ -47,21 +60,23 @@ public class Devis {
         this.accepte = accepte;
     }
 
-    public void accepterDevis() {
-        this.accepte = true;
+    public Project getProject() {
+        return project;
     }
 
-    public boolean estValide() {
-        return LocalDate.now().isBefore(dateValidite);
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     @Override
     public String toString() {
-        return "Devis{" +
-                "montantEstime=" + montantEstime +
+        return "Quote{" +
+                "id=" + id +
+                ", montantEstime=" + montantEstime +
                 ", dateEmission=" + dateEmission +
                 ", dateValidite=" + dateValidite +
                 ", accepte=" + accepte +
+                ", project=" + (project != null ? project.getId() : "null") +
                 '}';
     }
 }

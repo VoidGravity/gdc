@@ -213,7 +213,7 @@ public class BatiCuisineUI {
         return new Materiel(nom, coutUnitaire, quantite, tauxTVA, coutTransport, coefficientQualite);
     }
 
-    private MainOeuvre creerMainOeuvre() {
+    private Labor creerMainOeuvre() {
         System.out.print("Nom de la main d'oeuvre : ");
         String nom = scanner.nextLine();
         System.out.print("Taux horaire : ");
@@ -225,7 +225,7 @@ public class BatiCuisineUI {
         System.out.print("Productivité de l'ouvrier : ");
         double productiviteOuvrier = scanner.nextDouble();
 
-        return new MainOeuvre(nom, tauxHoraire, heuresTravail, tauxTVA, productiviteOuvrier);
+        return new Labor(nom, tauxHoraire, heuresTravail, tauxTVA, productiviteOuvrier);
     }
 
     private void calculerCoutTotal() {

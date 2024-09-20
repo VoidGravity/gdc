@@ -4,7 +4,7 @@ import com.baticuisine.dao.ProjetDAO;
 import com.baticuisine.model.Projet;
 import com.baticuisine.model.Client;
 import com.baticuisine.model.Composant;
-import com.baticuisine.model.Devis;
+import com.baticuisine.model.Quote;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,7 +41,7 @@ public class ProjetService {
     public void genererDevis(String nomProjet, LocalDate dateValidite) {
         Optional<Projet> projetOpt = projetDAO.findByNom(nomProjet);
         projetOpt.ifPresent(projet -> {
-            Devis devis = new Devis(projet.getCoutTotal(), LocalDate.now(), dateValidite);
+            Quote devis = new Quote(projet.getCoutTotal(), LocalDate.now(), dateValidite);
             projet.setDevis(devis);
             projetDAO.save(projet);
         });
