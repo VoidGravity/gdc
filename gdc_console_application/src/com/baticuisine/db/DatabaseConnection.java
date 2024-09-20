@@ -1,4 +1,4 @@
-package com.baticuisine.database;
+package com.baticuisine.db;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,20 +11,22 @@ public class DatabaseConnection {
     private DatabaseConnection() {
         try {
             Class.forName("org.postgresql.Driver");
-            this.connection = DriverManager.getConnection("jdbc:postgresql://localhost:5444/baticuisine", "your_username", "your_password");
+            this.connection = DriverManager.getConnection("jdbc:postgresql://localhost:5444/baticuisine", "myuser", "AZERAZER1234");
         } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
+            System.err.println("Database Connection Creation Failed : " + e.getMessage());
         }
-    }
-
-    public static synchronized DatabaseConnection getInstance() {
-        if (instance == null) {
-            instance = new DatabaseConnection();
-        }
-        return instance;
     }
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public static DatabaseConnection getInstance() throws SQLException {
+        if (instance == null) {
+            instance = new DatabaseConnection();
+        } else if (instance.getConnection().isClosed()) {
+            instance = new DatabaseConnection();
+        }
+        return instance;
     }
 }
