@@ -45,8 +45,27 @@ public class ProjectService {
     }
 
     public void addComponentToProject(int projectId, int componentId) {
-        projectRepository.addComponentToProject(projectId, componentId);
-        updateProjectCost(projectId);
+        Optional<Project> projectOpt = projectRepository.findById(projectId);
+        Optional<Component> componentOpt = componentRepository.findById(componentId);
+
+        if (projectOpt.isPresent() && componentOpt.isPresent()) {
+            Project project = projectOpt.get();
+            Component component = componentOpt.get();
+
+            projectRepository.addComponentToProject(projectId, componentId);
+            updateProjectCost(project);
+        } else {
+            throw new IllegalArgumentException("Project or Component not found");
+        }
+    }
+
+    private void updateProjectCost(Project project) {
+        List<Component> components = componentRepository.findByProjectId(project.getId());
+        double totalCost = components.stream()
+                .mapToDouble(Component::calculateCost)
+                .sum();
+        project.setCoutTotal(totalCost * (1 + project.getMargeBeneficiaire()));
+        projectRepository.update(project);
     }
 
     public void removeComponentFromProject(int projectId, int componentId) {

@@ -36,6 +36,7 @@ public class ClientService {
     }
 
     private void validateClient(Client client) {
+
         if (client.getNom() == null || client.getNom().trim().isEmpty()) {
             throw new IllegalArgumentException("Le nom du client ne peut pas être vide");
         }

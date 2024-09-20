@@ -268,6 +268,8 @@ public class BatiCuisineUI {
             System.out.println("Composant ajouté au projet avec succès.");
         } catch (IllegalArgumentException e) {
             System.out.println("Erreur : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Une erreur est survenue lors de l'ajout du composant au projet : " + e.getMessage());
         }
     }
 

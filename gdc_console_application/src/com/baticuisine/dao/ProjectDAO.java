@@ -94,21 +94,7 @@ public class ProjectDAO implements ProjectRepository {
         return projects;
     }
 
-    @Override
-    public void update(Project project) {
-        String sql = "UPDATE projects SET nom_projet = ?, marge_beneficiaire = ?, cout_total = ?, etat_projet = ?, client_id = ? WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, project.getNomProjet());
-            pstmt.setDouble(2, project.getMargeBeneficiaire());
-            pstmt.setDouble(3, project.getCoutTotal());
-            pstmt.setString(4, project.getEtatProjet().name());
-            pstmt.setInt(5, project.getClient().getId());
-            pstmt.setInt(6, project.getId());
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error updating project", e);
-        }
-    }
+
 
     @Override
     public void delete(int id) {
@@ -122,9 +108,27 @@ public class ProjectDAO implements ProjectRepository {
     }
 
     @Override
+    public void update(Project project) {
+        String sql = "UPDATE projects SET nom_projet = ?, marge_beneficiaire = ?, cout_total = ?, etat_projet = ?, client_id = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, project.getNomProjet());
+            pstmt.setDouble(2, project.getMargeBeneficiaire());
+            pstmt.setDouble(3, project.getCoutTotal());
+            pstmt.setString(4, project.getEtatProjet().name());
+            pstmt.setInt(5, project.getClient().getId());
+            pstmt.setInt(6, project.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating project", e);
+        }
+    }
+
+    @Override
     public void addComponentToProject(int projectId, int componentId) {
         String sql = "INSERT INTO project_components (project_id, component_id) VALUES (?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, projectId);
             pstmt.setInt(2, componentId);
             pstmt.executeUpdate();
