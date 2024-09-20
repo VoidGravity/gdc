@@ -3,22 +3,33 @@ package com.baticuisine.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Projet {
+public class Project {
+    private int id;
     private String nomProjet;
     private double margeBeneficiaire;
     private double coutTotal;
     private EtatProjet etatProjet;
     private Client client;
-    private List<Composant> composants;
-    private Devis devis;
+    private List<Component> components;
 
-    public Projet(String nomProjet, Client client) {
+    public Project() {
+        this.components = new ArrayList<>();
+    }
+
+    public Project(String nomProjet, double margeBeneficiaire, Client client) {
         this.nomProjet = nomProjet;
+        this.margeBeneficiaire = margeBeneficiaire;
         this.client = client;
         this.etatProjet = EtatProjet.EN_COURS;
-        this.composants = new ArrayList<>();
-        this.margeBeneficiaire = 0.0;
-        this.coutTotal = 0.0;
+        this.components = new ArrayList<>();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNomProjet() {
@@ -61,43 +72,32 @@ public class Projet {
         this.client = client;
     }
 
-    public List<Composant> getComposants() {
-        return composants;
+    public List<Component> getComponents() {
+        return components;
     }
 
-    public void setComposants(List<Composant> composants) {
-        this.composants = composants;
+    public void setComponents(List<Component> components) {
+        this.components = components;
     }
 
-    public Devis getDevis() {
-        return devis;
+    public void addComponent(Component component) {
+        this.components.add(component);
     }
 
-    public void setDevis(Devis devis) {
-        this.devis = devis;
-    }
-
-    public void ajouterComposant(Composant composant) {
-        this.composants.add(composant);
-    }
-
-    public void calculerCoutTotal() {
-        double coutMateriauxEtMainOeuvre = composants.stream()
-                .mapToDouble(Composant::calculerCoutTotal)
-                .sum();
-        this.coutTotal = coutMateriauxEtMainOeuvre * (1 + margeBeneficiaire);
+    public void removeComponent(Component component) {
+        this.components.remove(component);
     }
 
     @Override
     public String toString() {
-        return "Projet{" +
-                "nomProjet='" + nomProjet + '\'' +
+        return "Project{" +
+                "id=" + id +
+                ", nomProjet='" + nomProjet + '\'' +
                 ", margeBeneficiaire=" + margeBeneficiaire +
                 ", coutTotal=" + coutTotal +
                 ", etatProjet=" + etatProjet +
                 ", client=" + client +
-                ", composants=" + composants +
-                ", devis=" + devis +
+                ", components=" + components +
                 '}';
     }
 }

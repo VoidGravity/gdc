@@ -7,16 +7,21 @@ public class Client {
     private String telephone;
     private boolean estProfessionnel;
 
-    public Client(String nom, String adresse, String telephone, boolean estProfessionnel) {
-        this(0, nom, adresse, telephone, estProfessionnel);
-    }
+    public Client() {}
 
-    public Client(int id, String nom, String adresse, String telephone, boolean estProfessionnel) {
-        this.id = id;
+    public Client(String nom, String adresse, String telephone, boolean estProfessionnel) {
         this.nom = nom;
         this.adresse = adresse;
         this.telephone = telephone;
         this.estProfessionnel = estProfessionnel;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNom() {
@@ -50,13 +55,7 @@ public class Client {
     public void setEstProfessionnel(boolean estProfessionnel) {
         this.estProfessionnel = estProfessionnel;
     }
-    public int getId() {
-        return id;
-    }
 
-    public void setId(int id) {
-        this.id = id;
-    }
     @Override
     public String toString() {
         return "Client{" +
