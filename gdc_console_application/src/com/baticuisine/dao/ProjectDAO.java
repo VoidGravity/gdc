@@ -11,20 +11,15 @@ import java.util.List;
 import java.util.Optional;
 
 public class ProjectDAO implements ProjectRepository {
-    private Connection connection;
-
-    public ProjectDAO() {
-        try {
-            this.connection = DatabaseConnection.getInstance().getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error connecting to the database", e);
-        }
+    private Connection getConnection() throws SQLException {
+        return DatabaseConnection.getInstance().getConnection();
     }
 
     @Override
     public void save(Project project) {
         String sql = "INSERT INTO projects (nom_projet, marge_beneficiaire, cout_total, etat_projet, client_id) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, project.getNomProjet());
             pstmt.setDouble(2, project.getMargeBeneficiaire());
             pstmt.setDouble(3, project.getCoutTotal());
@@ -51,7 +46,8 @@ public class ProjectDAO implements ProjectRepository {
     @Override
     public Optional<Project> findById(int id) {
         String sql = "SELECT * FROM projects WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -67,7 +63,8 @@ public class ProjectDAO implements ProjectRepository {
     public List<Project> findAll() {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM projects";
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 projects.add(extractProjectFromResultSet(rs));
@@ -82,7 +79,8 @@ public class ProjectDAO implements ProjectRepository {
     public List<Project> findByClientId(int clientId) {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM projects WHERE client_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, clientId);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -94,23 +92,10 @@ public class ProjectDAO implements ProjectRepository {
         return projects;
     }
 
-
-
-    @Override
-    public void delete(int id) {
-        String sql = "DELETE FROM projects WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error deleting project", e);
-        }
-    }
-
     @Override
     public void update(Project project) {
         String sql = "UPDATE projects SET nom_projet = ?, marge_beneficiaire = ?, cout_total = ?, etat_projet = ?, client_id = ? WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, project.getNomProjet());
             pstmt.setDouble(2, project.getMargeBeneficiaire());
@@ -125,9 +110,21 @@ public class ProjectDAO implements ProjectRepository {
     }
 
     @Override
+    public void delete(int id) {
+        String sql = "DELETE FROM projects WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting project", e);
+        }
+    }
+
+    @Override
     public void addComponentToProject(int projectId, int componentId) {
         String sql = "INSERT INTO project_components (project_id, component_id) VALUES (?, ?)";
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, projectId);
             pstmt.setInt(2, componentId);
@@ -140,7 +137,8 @@ public class ProjectDAO implements ProjectRepository {
     @Override
     public void removeComponentFromProject(int projectId, int componentId) {
         String sql = "DELETE FROM project_components WHERE project_id = ? AND component_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, projectId);
             pstmt.setInt(2, componentId);
             pstmt.executeUpdate();
@@ -156,7 +154,6 @@ public class ProjectDAO implements ProjectRepository {
         project.setMargeBeneficiaire(rs.getDouble("marge_beneficiaire"));
         project.setCoutTotal(rs.getDouble("cout_total"));
         project.setEtatProjet(EtatProjet.valueOf(rs.getString("etat_projet")));
-        // question to ask Mrabdelhafid , should i set client for fs
         return project;
     }
 }
