@@ -1,77 +1,114 @@
 package com.baticuisine.dao;
 
 import com.baticuisine.model.Client;
+import com.baticuisine.repository.ClientRepository;
+import com.baticuisine.db.DatabaseConnection;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ClientDAO {
-    private static final String URL = "jdbc:postgresql://localhost:5444/baticuisine";
-    private static final String USER = "myuser";
-    private static final String PASSWORD = "AZERAZER1234";
+public class ClientDAO implements ClientRepository {
+    private Connection connection;
 
+    public ClientDAO() {
+        try {
+            this.connection = DatabaseConnection.getInstance().getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error connecting to the database", e);
+        }
+    }
+
+    @Override
     public void save(Client client) {
-        String sql = "INSERT INTO clients (nom, adresse, telephone, est_professionnel) VALUES (?, ?, ?, ?) ON CONFLICT (nom) DO UPDATE SET adresse = EXCLUDED.adresse, telephone = EXCLUDED.telephone, est_professionnel = EXCLUDED.est_professionnel";
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        String sql = "INSERT INTO clients (nom, adresse, telephone, est_professionnel) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, client.getNom());
             pstmt.setString(2, client.getAdresse());
             pstmt.setString(3, client.getTelephone());
             pstmt.setBoolean(4, client.isEstProfessionnel());
-            pstmt.executeUpdate();
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating client failed, no rows affected.");
+            }
 
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     client.setId(generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Creating client failed, no ID obtained.");
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error saving client", e);
         }
     }
 
-    public Optional<Client> findByNom(String nom) {
-        String sql = "SELECT * FROM clients WHERE nom = ?";
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, nom);
+    @Override
+    public Optional<Client> findById(int id) {
+        String sql = "SELECT * FROM clients WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                Client client = new Client(
-                        rs.getInt("id"),
-                        rs.getString("nom"),
-                        rs.getString("adresse"),
-                        rs.getString("telephone"),
-                        rs.getBoolean("est_professionnel")
-                );
-                return Optional.of(client);
+                return Optional.of(extractClientFromResultSet(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error finding client by ID", e);
         }
         return Optional.empty();
     }
 
+    @Override
     public List<Client> findAll() {
         List<Client> clients = new ArrayList<>();
         String sql = "SELECT * FROM clients";
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                Client client = new Client(
-                        rs.getInt("id"),
-                        rs.getString("nom"),
-                        rs.getString("adresse"),
-                        rs.getString("telephone"),
-                        rs.getBoolean("est_professionnel")
-                );
-                clients.add(client);
+                clients.add(extractClientFromResultSet(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error finding all clients", e);
         }
         return clients;
+    }
+
+    @Override
+    public void update(Client client) {
+        String sql = "UPDATE clients SET nom = ?, adresse = ?, telephone = ?, est_professionnel = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, client.getNom());
+            pstmt.setString(2, client.getAdresse());
+            pstmt.setString(3, client.getTelephone());
+            pstmt.setBoolean(4, client.isEstProfessionnel());
+            pstmt.setInt(5, client.getId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error updating client", e);
+        }
+    }
+
+    @Override
+    public void delete(int id) {
+        String sql = "DELETE FROM clients WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error deleting client", e);
+        }
+    }
+
+    private Client extractClientFromResultSet(ResultSet rs) throws SQLException {
+        Client client = new Client();
+        client.setId(rs.getInt("id"));
+        client.setNom(rs.getString("nom"));
+        client.setAdresse(rs.getString("adresse"));
+        client.setTelephone(rs.getString("telephone"));
+        client.setEstProfessionnel(rs.getBoolean("est_professionnel"));
+        return client;
     }
 }
