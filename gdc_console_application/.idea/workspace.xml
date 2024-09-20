@@ -41,6 +41,11 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
   }
 }]]></component>
   <component name="SharedIndexes">
@@ -59,7 +64,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1726736960826</updated>
-      <workItem from="1726736961860" duration="7018000" />
+      <workItem from="1726736961860" duration="7571000" />
     </task>
     <servers />
   </component>
