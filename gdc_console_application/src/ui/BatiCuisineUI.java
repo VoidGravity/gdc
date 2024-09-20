@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 //package com.baticuisine.ui;
 //
-//import com.baticuisine.service.ClientService;
+//import com.baticui sine.service.ClientService;
 //import com.baticuisine.service.ProjetService;
 //import com.baticuisine.model.*;
 //
