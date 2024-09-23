@@ -6,7 +6,20 @@ import com.baticuisine.model.Component;
 import com.baticuisine.repository.QuoteRepository;
 import com.baticuisine.repository.ProjectRepository;
 import com.baticuisine.repository.ComponentRepository;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Optional;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +28,7 @@ public class QuoteService {
     private final QuoteRepository quoteRepository;
     private final ProjectRepository projectRepository;
     private final ComponentRepository componentRepository;
+    private static final String EXPORT_DIRECTORY = "C:\\Users\\YouCode\\Desktop\\devis";
 
     public QuoteService(QuoteRepository quoteRepository, ProjectRepository projectRepository, ComponentRepository componentRepository) {
         this.quoteRepository = quoteRepository;
@@ -77,6 +91,57 @@ public class QuoteService {
 
     public void deleteQuote(int id) {
         quoteRepository.delete(id);
+    }
+
+
+    public void exportQuoteToPDF(int quoteId) {
+        Optional<Quote> quoteOpt = quoteRepository.findById(quoteId);
+        if (quoteOpt.isPresent()) {
+            Quote quote = quoteOpt.get();
+            String fileName = "devis_" + quoteId + ".pdf";
+            String filePath = Paths.get(EXPORT_DIRECTORY, fileName).toString();
+
+            try (PDDocument document = new PDDocument()) {
+                PDPage page = new PDPage();
+                document.addPage(page);
+
+                try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                    // Title
+                    writeText(contentStream, "Devis #" + quote.getId(), 50, 700, 12, true);
+
+                    // Details
+                    float y = 680;
+                    writeText(contentStream, "Date d'émission: " + quote.getDateEmission(), 50, y, 10, false);
+                    y -= 15;
+                    writeText(contentStream, "Date de validité: " + quote.getDateValidite(), 50, y, 10, false);
+                    y -= 15;
+                    writeText(contentStream, "Montant estimé: " + quote.getMontantEstime() + " €", 50, y, 10, false);
+                    y -= 15;
+                    writeText(contentStream, "Statut: " + (quote.isAccepte() ? "Accepté" : "En attente"), 50, y, 10, false);
+
+                    if (quote.getProject() != null) {
+                        y -= 20;
+                        writeText(contentStream, "Projet: " + quote.getProject().getNomProjet(), 50, y, 10, false);
+                    }
+                }
+
+                Files.createDirectories(Paths.get(EXPORT_DIRECTORY));
+                document.save(filePath);
+                System.out.println("Devis exporté avec succès vers: " + filePath);
+            } catch (IOException e) {
+                throw new RuntimeException("Erreur lors de l'exportation du devis en PDF", e);
+            }
+        } else {
+            throw new IllegalArgumentException("Devis non trouvé avec l'ID: " + quoteId);
+        }
+    }
+
+    private void writeText(PDPageContentStream contentStream, String text, float x, float y, int fontSize, boolean isBold) throws IOException {
+        contentStream.beginText();
+        contentStream.newLineAtOffset(x, y);
+        contentStream.setFont(isBold ? new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD) : new PDType1Font(Standard14Fonts.FontName.HELVETICA), fontSize);
+        contentStream.showText(text);
+        contentStream.endText();
     }
 
     private void validateQuote(Quote quote) {

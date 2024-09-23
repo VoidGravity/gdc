@@ -34,7 +34,7 @@ public class DatabaseConnection {
         }
         return instance;
     }
-
+    // fach tsali dir closeConnection() ila luser dar quite
     public void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {

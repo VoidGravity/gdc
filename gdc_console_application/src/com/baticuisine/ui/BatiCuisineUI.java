@@ -99,6 +99,11 @@ public class BatiCuisineUI {
         String nom = getStringInput("Nom : ");
         String adresse = getStringInput("Adresse : ");
         String telephone = getStringInput("Téléphone : ");
+
+        while (!telephone.matches("^(07|06)\\d{8}$")) {
+            System.out.println("Veuillez entrer un numéro de téléphone valide (10 chiffres, commençant par 07 ou 06).");
+            telephone = getStringInput("Téléphone : ");
+        }
         boolean estProfessionnel = getBooleanInput("Est-ce un client professionnel ? (oui/non) : ");
 
         Client newClient = new Client(nom, adresse, telephone, estProfessionnel);
@@ -113,7 +118,14 @@ public class BatiCuisineUI {
         } else {
             System.out.println("\nListe des clients :");
             for (Client client : clients) {
-                System.out.println(client);
+                // showing each element sepratly
+                System.out.println("=========Client with Id : " + client.getId() + "==========");
+                System.out.println("Nom : " + client.getNom());
+                System.out.println("Adresse : " + client.getAdresse());
+                System.out.println("Téléphone : " + client.getTelephone());
+                System.out.println("Est professionnel : " + client.isEstProfessionnel());
+                System.out.println("====================================");
+//                System.out.println(client);
             }
         }
     }
@@ -125,14 +137,21 @@ public class BatiCuisineUI {
             Client client = clientOpt.get();
             System.out.println("Client actuel : " + client);
 
-            String nom = getStringInput("Nouveau nom (laisser vide pour ne pas changer) : ");
-            String adresse = getStringInput("Nouvelle adresse (laisser vide pour ne pas changer) : ");
-            String telephone = getStringInput("Nouveau téléphone (laisser vide pour ne pas changer) : ");
-            String estProfessionnelStr = getStringInput("Est-ce un client professionnel ? (oui/non/laisser vide pour ne pas changer) : ");
+            String nom = getStringInput("Nouveau nom  : ");
+            String adresse = getStringInput("Nouvelle adresse  : ");
+            String telephone = getStringInput("Nouveau téléphone  : ");
+            String estProfessionnelStr = getStringInput("Est-ce un client professionnel ? (oui/non/) : ");
 
             if (!nom.isEmpty()) client.setNom(nom);
             if (!adresse.isEmpty()) client.setAdresse(adresse);
-            if (!telephone.isEmpty()) client.setTelephone(telephone);
+            //phone number validation
+            if (!telephone.isEmpty()) {
+                while (!telephone.matches("^(07|06)\\d{8}$")) {
+                    System.out.println("Veuillez entrer un numéro de téléphone valide (10 chiffres, commençant par 07 ou 06).");
+                    telephone = getStringInput("Téléphone : ");
+                }
+            }
+
             if (!estProfessionnelStr.isEmpty()) {
                 client.setEstProfessionnel(estProfessionnelStr.equalsIgnoreCase("oui"));
             }
@@ -219,11 +238,11 @@ public class BatiCuisineUI {
             System.out.println("Erreur : " + e.getMessage());
         } catch (RuntimeException e) {
             System.out.println("Une erreur est survenue lors de l'ajout du composant au projet : " + e.getMessage());
-            e.printStackTrace(); // This will print the full stack trace for debugging
+            e.printStackTrace();
         }
     }
 
-//    private void afficherTousLesProjets() {
+    //    private void afficherTousLesProjets() {
 //        List<Project> projects = projectService.getAllProjects();
 //        if (projects.isEmpty()) {
 //            System.out.println("Aucun projet trouvé.");
@@ -244,28 +263,36 @@ public class BatiCuisineUI {
 //            }
 //        }
 //    }
-private void afficherTousLesProjets() {
-    List<Project> projects = projectService.getAllProjects();
-    if (projects.isEmpty()) {
-        System.out.println("Aucun projet trouvé.");
-    } else {
-        System.out.println("\nListe des projets :");
-        for (Project project : projects) {
-            System.out.println(project);
-            System.out.println("Client : " + (project.getClient() != null ? project.getClient().getNom() : "Aucun client associé"));
-            System.out.println("Composants :");
-            if (project.getComponents() != null && !project.getComponents().isEmpty()) {
-                for (Component component : project.getComponents()) {
-                    System.out.println("  - " + component);
+    private void afficherTousLesProjets() {
+        List<Project> projects = projectService.getAllProjects();
+        if (projects.isEmpty()) {
+            System.out.println("Aucun projet trouvé.");
+        } else {
+            System.out.println("\nListe des projets :");
+            for (Project project : projects) {
+                //showing each detial sepratlu
+                System.out.println("=========Project with Id : " + project.getId() + "==========");
+                System.out.println("Nom du projet : " + project.getNomProjet());
+                System.out.println("Marge bénéficiaire : " + project.getMargeBeneficiaire());
+                System.out.println("Etat du projet : " + project.getEtatProjet());
+
+                System.out.println("Client : " + (project.getClient() != null ? project.getClient().getNom() : "Aucun client associé"));
+                System.out.println("Composants :");
+                if (project.getComponents() != null && !project.getComponents().isEmpty()) {
+                    for (Component component : project.getComponents()) {
+                        //afficher touls les detiales du project
+                        System.out.println("-Component with Id : " + component.getId());
+                        System.out.println("-->Nom : " + component.getNom());
+
+                    }
+                } else {
+                    System.out.println("  Aucun composant");
                 }
-            } else {
-                System.out.println("  Aucun composant");
+                System.out.println("Coût total : " + project.getCoutTotal());
+                System.out.println("====================================");
             }
-            System.out.println("Coût total : " + project.getCoutTotal());
-            System.out.println("--------------------");
         }
     }
-}
 
     private void modifierProjet() {
         int id = getIntInput("Entrez l'ID du projet à modifier : ");
@@ -274,9 +301,9 @@ private void afficherTousLesProjets() {
             Project project = projectOpt.get();
             System.out.println("Projet actuel : " + project);
 
-            String nomProjet = getStringInput("Nouveau nom du projet (laisser vide pour ne pas changer) : ");
-            String margeBeneficiaireStr = getStringInput("Nouvelle marge bénéficiaire en pourcentage (laisser vide pour ne pas changer) : ");
-            String etatProjetStr = getStringInput("Nouvel état du projet (EN_COURS, TERMINE, ANNULE, laisser vide pour ne pas changer) : ");
+            String nomProjet = getStringInput("Nouveau nom du projet  : ");
+            String margeBeneficiaireStr = getStringInput("Nouvelle marge bénéficiaire en pourcentage  : ");
+            String etatProjetStr = getStringInput("Nouvel état du projet (EN_COURS, TERMINE, ANNULE, ) : ");
 
             if (!nomProjet.isEmpty()) project.setNomProjet(nomProjet);
             if (!margeBeneficiaireStr.isEmpty()) {
@@ -303,7 +330,6 @@ private void afficherTousLesProjets() {
             System.out.println("Projet non trouvé.");
         }
     }
-
 
 
     private double getDoubleInput(String prompt) {
@@ -386,9 +412,24 @@ private void afficherTousLesProjets() {
         } else {
             System.out.println("\nListe des composants :");
             for (Component component : components) {
-                System.out.println(component);
+                // showing composant sepratly
+                System.out.println("=========Component with Id : " + component.getId() + "==========");
+                System.out.println("Nom : " + component.getNom());
+                System.out.println("Taux de TVA : " + component.getTauxTVA());
+                if (component instanceof Material) {
+                    Material material = (Material) component;
+                    System.out.println("Coût unitaire : " + material.getCoutUnitaire());
+                    System.out.println("Quantité : " + material.getQuantite());
+                    System.out.println("Coût de transport : " + material.getCoutTransport());
+                    System.out.println("Coefficient de qualité : " + material.getCoefficientQualite());
+                } else if (component instanceof Labor) {
+                    Labor labor = (Labor) component;
+                    System.out.println("Taux horaire : " + labor.getTauxHoraire());
+                    System.out.println("Heures de travail : " + labor.getHeuresTravail());
+                    System.out.println("Productivité de l'ouvrier : " + labor.getProductiviteOuvrier());
+                }
                 System.out.println("Coût : " + componentService.calculateComponentCost(component));
-                System.out.println("--------------------");
+                System.out.println("====================================");
             }
         }
     }
@@ -400,8 +441,8 @@ private void afficherTousLesProjets() {
             Component component = componentOpt.get();
             System.out.println("Composant actuel : " + component);
 
-            String nom = getStringInput("Nouveau nom (laisser vide pour ne pas changer) : ");
-            String tauxTVAStr = getStringInput("Nouveau taux de TVA en pourcentage (laisser vide pour ne pas changer) : ");
+            String nom = getStringInput("Nouveau nom  : ");
+            String tauxTVAStr = getStringInput("Nouveau taux de TVA en pourcentage  : ");
 
             if (!nom.isEmpty()) component.setNom(nom);
             if (!tauxTVAStr.isEmpty()) component.setTauxTVA(Double.parseDouble(tauxTVAStr));
@@ -420,10 +461,10 @@ private void afficherTousLesProjets() {
     }
 
     private void modifierMateriel(Material material) {
-        String coutUnitaireStr = getStringInput("Nouveau coût unitaire (laisser vide pour ne pas changer) : ");
-        String quantiteStr = getStringInput("Nouvelle quantité (laisser vide pour ne pas changer) : ");
-        String coutTransportStr = getStringInput("Nouveau coût de transport (laisser vide pour ne pas changer) : ");
-        String coefficientQualiteStr = getStringInput("Nouveau coefficient de qualité (laisser vide pour ne pas changer) : ");
+        String coutUnitaireStr = getStringInput("Nouveau coût unitaire  : ");
+        String quantiteStr = getStringInput("Nouvelle quantité  : ");
+        String coutTransportStr = getStringInput("Nouveau coût de transport  : ");
+        String coefficientQualiteStr = getStringInput("Nouveau coefficient de qualité  : ");
 
         if (!coutUnitaireStr.isEmpty()) material.setCoutUnitaire(Double.parseDouble(coutUnitaireStr));
         if (!quantiteStr.isEmpty()) material.setQuantite(Double.parseDouble(quantiteStr));
@@ -432,9 +473,9 @@ private void afficherTousLesProjets() {
     }
 
     private void modifierMainDoeuvre(Labor labor) {
-        String tauxHoraireStr = getStringInput("Nouveau taux horaire (laisser vide pour ne pas changer) : ");
-        String heuresTravailStr = getStringInput("Nouvelles heures de travail (laisser vide pour ne pas changer) : ");
-        String productiviteOuvrierStr = getStringInput("Nouvelle productivité de l'ouvrier (laisser vide pour ne pas changer) : ");
+        String tauxHoraireStr = getStringInput("Nouveau taux horaire  : ");
+        String heuresTravailStr = getStringInput("Nouvelles heures de travail  : ");
+        String productiviteOuvrierStr = getStringInput("Nouvelle productivité de l'ouvrier  : ");
 
         if (!tauxHoraireStr.isEmpty()) labor.setTauxHoraire(Double.parseDouble(tauxHoraireStr));
         if (!heuresTravailStr.isEmpty()) labor.setHeuresTravail(Double.parseDouble(heuresTravailStr));
@@ -462,7 +503,8 @@ private void afficherTousLesProjets() {
             System.out.println("4. Supprimer un devis");
             System.out.println("5. Accepter un devis");
             System.out.println("6. Prolonger la validité d'un devis");
-            System.out.println("7. Retour au menu principal");
+            System.out.println("7. Exporter un devis as a PDF");
+            System.out.println("8. Retour au menu principal");
 
             int choice = getIntInput("Choisissez une option : ");
             switch (choice) {
@@ -485,6 +527,9 @@ private void afficherTousLesProjets() {
                     prolongerValiditeDevis();
                     break;
                 case 7:
+                    exporterDevisPDF();
+                    break;
+                case 8:
                     managing = false;
                     break;
                 default:
@@ -492,8 +537,20 @@ private void afficherTousLesProjets() {
             }
         }
     }
+    private void exporterDevisPDF() {
+        int id = getIntInput("Entrez l'ID du devis à exporter : ");
+        try {
+            quoteService.exportQuoteToPDF(id);
+            System.out.println("Devis exporté avec succès en PDF.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Une erreur est survenue lors de l'exportation du devis en PDF : " + e.getMessage());
+            e.printStackTrace(); //ndebugi 3Lah
+        }
+    }
 
-//    private void creerDevis() {
+    //    private void creerDevis() {
 //        System.out.println("\nCréation d'un nouveau devis");
 //        int projectId = getIntInput("ID du projet associé : ");
 //        Optional<Project> projectOpt = projectService.getProjectById(projectId);
@@ -510,20 +567,21 @@ private void afficherTousLesProjets() {
 //            System.out.println("Projet non trouvé. Création du devis annulée.");
 //        }
 //    }
-        private void creerDevis() {
-            System.out.println("\nCréation d'un nouveau devis");
-            int projectId = getIntInput("ID du projet associé : ");
-            LocalDate dateValidite = getDateInput("Date de validité (JJ/MM/AAAA) : ");
+    private void creerDevis() {
+        System.out.println("\nCréation d'un nouveau devis");
+        int projectId = getIntInput("ID du projet associé : ");
+        LocalDate dateValidite = getDateInput("Date de validité (JJ/MM/AAAA) : ");
 
-            try {
-                quoteService.createQuote(projectId, dateValidite);
-                System.out.println("Devis créé avec succès.");
-            } catch (IllegalArgumentException e) {
-                System.out.println("Erreur lors de la création du devis : " + e.getMessage());
-            } catch (RuntimeException e) {
-                System.out.println("Une erreur est survenue lors de la création du devis : " + e.getMessage());
-            }
+        try {
+            quoteService.createQuote(projectId, dateValidite);
+            System.out.println("Devis créé avec succès.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erreur lors de la création du devis : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Une erreur est survenue lors de la création du devis : " + e.getMessage());
         }
+    }
+
     private void afficherTousLesDevis() {
         try {
             List<Quote> quotes = quoteService.getAllQuotes();
@@ -532,9 +590,13 @@ private void afficherTousLesProjets() {
             } else {
                 System.out.println("\nListe des devis :");
                 for (Quote quote : quotes) {
-                    System.out.println(quote);
-                    System.out.println("Validité : " + (quoteService.isQuoteValid(quote) ? "Valide" : "Expiré"));
-                    System.out.println("Projet associé : " + (quote.getProject() != null ? quote.getProject().getNomProjet() : "Aucun"));
+                    System.out.println("Devis #" + quote.getId());
+                    System.out.println("Montant estimé : " + quote.getMontantEstime());
+                    System.out.println("Date d'émission : " + quote.getDateEmission());
+                    System.out.println("Date de validité : " + quote.getDateValidite());
+                    System.out.println("Accepté : " + (quote.isAccepte() ? "Oui" : "Non"));
+                    System.out.println("Projet associé : " + (quote.getProject() != null ? quote.getProject().getNomProjet() : "Aucun"));                    System.out.println("Projet associé : " + (quote.getProject() != null ? quote.getProject().getNomProjet() : "Aucun"));
+//                    System.out.println("Client associé : " + (quote.getProject() != null && quote.getProject().getClient() != null ? quote.getProject().getClient().getNom() : "Aucun"));
                     System.out.println("--------------------");
                 }
             }
@@ -543,6 +605,7 @@ private void afficherTousLesProjets() {
             e.printStackTrace();
         }
     }
+
     private void modifierDevis() {
         int id = getIntInput("Entrez l'ID du devis à modifier : ");
         Optional<Quote> quoteOpt = quoteService.getQuoteById(id);
@@ -550,7 +613,7 @@ private void afficherTousLesProjets() {
             Quote quote = quoteOpt.get();
             System.out.println("Devis actuel : " + quote);
 
-            LocalDate newDateValidite = getDateInput("Nouvelle date de validité (JJ/MM/AAAA, laisser vide pour ne pas changer) : ");
+            LocalDate newDateValidite = getDateInput("Nouvelle date de validité (JJ/MM/AAAA, ) : ");
             if (newDateValidite != null) {
                 quote.setDateValidite(newDateValidite);
             }
