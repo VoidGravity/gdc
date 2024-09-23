@@ -12,20 +12,15 @@ import java.util.List;
 import java.util.Optional;
 
 public class ComponentDAO implements ComponentRepository {
-    private Connection connection;
-
-    public ComponentDAO() {
-        try {
-            this.connection = DatabaseConnection.getInstance().getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error connecting to the database", e);
-        }
+    private Connection getConnection() {
+        return DatabaseConnection.getInstance().getConnection();
     }
 
     @Override
     public void save(Component component) {
         String sql = "INSERT INTO components (nom, type_composant, taux_tva) VALUES (?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, component.getNom());
             pstmt.setString(2, component.getTypeComposant());
             pstmt.setDouble(3, component.getTauxTVA());
@@ -55,7 +50,8 @@ public class ComponentDAO implements ComponentRepository {
 
     private void saveMaterialDetails(Material material) throws SQLException {
         String sql = "INSERT INTO materials (component_id, cout_unitaire, quantite, cout_transport, coefficient_qualite) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, material.getId());
             pstmt.setDouble(2, material.getCoutUnitaire());
             pstmt.setDouble(3, material.getQuantite());
@@ -67,7 +63,8 @@ public class ComponentDAO implements ComponentRepository {
 
     private void saveLaborDetails(Labor labor) throws SQLException {
         String sql = "INSERT INTO labor (component_id, taux_horaire, heures_travail, productivite_ouvrier) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, labor.getId());
             pstmt.setDouble(2, labor.getTauxHoraire());
             pstmt.setDouble(3, labor.getHeuresTravail());
@@ -84,11 +81,13 @@ public class ComponentDAO implements ComponentRepository {
                 "LEFT JOIN materials m ON c.id = m.component_id " +
                 "LEFT JOIN labor l ON c.id = l.component_id " +
                 "WHERE c.id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return Optional.of(extractComponentFromResultSet(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(extractComponentFromResultSet(rs));
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error finding component by ID", e);
@@ -104,7 +103,8 @@ public class ComponentDAO implements ComponentRepository {
                 "FROM components c " +
                 "LEFT JOIN materials m ON c.id = m.component_id " +
                 "LEFT JOIN labor l ON c.id = l.component_id";
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 components.add(extractComponentFromResultSet(rs));
@@ -125,11 +125,13 @@ public class ComponentDAO implements ComponentRepository {
                 "LEFT JOIN labor l ON c.id = l.component_id " +
                 "JOIN project_components pc ON c.id = pc.component_id " +
                 "WHERE pc.project_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, projectId);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                components.add(extractComponentFromResultSet(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    components.add(extractComponentFromResultSet(rs));
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error finding components by project ID", e);
@@ -140,7 +142,8 @@ public class ComponentDAO implements ComponentRepository {
     @Override
     public void update(Component component) {
         String sql = "UPDATE components SET nom = ?, type_composant = ?, taux_tva = ? WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, component.getNom());
             pstmt.setString(2, component.getTypeComposant());
             pstmt.setDouble(3, component.getTauxTVA());
@@ -159,7 +162,8 @@ public class ComponentDAO implements ComponentRepository {
 
     private void updateMaterialDetails(Material material) throws SQLException {
         String sql = "UPDATE materials SET cout_unitaire = ?, quantite = ?, cout_transport = ?, coefficient_qualite = ? WHERE component_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setDouble(1, material.getCoutUnitaire());
             pstmt.setDouble(2, material.getQuantite());
             pstmt.setDouble(3, material.getCoutTransport());
@@ -171,7 +175,8 @@ public class ComponentDAO implements ComponentRepository {
 
     private void updateLaborDetails(Labor labor) throws SQLException {
         String sql = "UPDATE labor SET taux_horaire = ?, heures_travail = ?, productivite_ouvrier = ? WHERE component_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setDouble(1, labor.getTauxHoraire());
             pstmt.setDouble(2, labor.getHeuresTravail());
             pstmt.setDouble(3, labor.getProductiviteOuvrier());
@@ -183,7 +188,8 @@ public class ComponentDAO implements ComponentRepository {
     @Override
     public void delete(int id) {
         String sql = "DELETE FROM components WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {

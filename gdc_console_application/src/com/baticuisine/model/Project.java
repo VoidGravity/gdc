@@ -96,8 +96,8 @@ public class Project {
                 ", margeBeneficiaire=" + margeBeneficiaire +
                 ", coutTotal=" + coutTotal +
                 ", etatProjet=" + etatProjet +
-                ", client=" + client +
-                ", components=" + components +
+                ", client=" + (client != null ? client.getNom() : "No client") +
+                ", components=" + (components != null ? components.size() : 0) + " components" +
                 '}';
     }
 }

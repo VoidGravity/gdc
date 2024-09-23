@@ -208,19 +208,64 @@ public class BatiCuisineUI {
         }
     }
 
-    private void afficherTousLesProjets() {
-        List<Project> projects = projectService.getAllProjects();
-        if (projects.isEmpty()) {
-            System.out.println("Aucun projet trouvé.");
-        } else {
-            System.out.println("\nListe des projets :");
-            for (Project project : projects) {
-                System.out.println(project);
-                System.out.println("Coût total : " + projectService.calculateTotalCost(project.getId()));
-                System.out.println("--------------------");
-            }
+    private void ajouterComposantAuProjet() {
+        int projectId = getIntInput("Entrez l'ID du projet : ");
+        int componentId = getIntInput("Entrez l'ID du composant à ajouter : ");
+
+        try {
+            projectService.addComponentToProject(projectId, componentId);
+            System.out.println("Composant ajouté au projet avec succès.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erreur : " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.out.println("Une erreur est survenue lors de l'ajout du composant au projet : " + e.getMessage());
+            e.printStackTrace(); // This will print the full stack trace for debugging
         }
     }
+
+//    private void afficherTousLesProjets() {
+//        List<Project> projects = projectService.getAllProjects();
+//        if (projects.isEmpty()) {
+//            System.out.println("Aucun projet trouvé.");
+//        } else {
+//            System.out.println("\nListe des projets :");
+//            for (Project project : projects) {
+//                System.out.println(project);
+//                System.out.println("Composants :");
+//                if (project.getComponents() != null && !project.getComponents().isEmpty()) {
+//                    for (Component component : project.getComponents()) {
+//                        System.out.println("  - " + component);
+//                    }
+//                } else {
+//                    System.out.println("  Aucun composant");
+//                }
+//                System.out.println("Coût total : " + project.getCoutTotal());
+//                System.out.println("--------------------");
+//            }
+//        }
+//    }
+private void afficherTousLesProjets() {
+    List<Project> projects = projectService.getAllProjects();
+    if (projects.isEmpty()) {
+        System.out.println("Aucun projet trouvé.");
+    } else {
+        System.out.println("\nListe des projets :");
+        for (Project project : projects) {
+            System.out.println(project);
+            System.out.println("Client : " + (project.getClient() != null ? project.getClient().getNom() : "Aucun client associé"));
+            System.out.println("Composants :");
+            if (project.getComponents() != null && !project.getComponents().isEmpty()) {
+                for (Component component : project.getComponents()) {
+                    System.out.println("  - " + component);
+                }
+            } else {
+                System.out.println("  Aucun composant");
+            }
+            System.out.println("Coût total : " + project.getCoutTotal());
+            System.out.println("--------------------");
+        }
+    }
+}
 
     private void modifierProjet() {
         int id = getIntInput("Entrez l'ID du projet à modifier : ");
@@ -259,19 +304,7 @@ public class BatiCuisineUI {
         }
     }
 
-    private void ajouterComposantAuProjet() {
-        int projectId = getIntInput("Entrez l'ID du projet : ");
-        int componentId = getIntInput("Entrez l'ID du composant à ajouter : ");
 
-        try {
-            projectService.addComponentToProject(projectId, componentId);
-            System.out.println("Composant ajouté au projet avec succès.");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Erreur : " + e.getMessage());
-        } catch (RuntimeException e) {
-            System.out.println("Une erreur est survenue lors de l'ajout du composant au projet : " + e.getMessage());
-        }
-    }
 
     private double getDoubleInput(String prompt) {
         System.out.print(prompt);
@@ -460,38 +493,56 @@ public class BatiCuisineUI {
         }
     }
 
-    private void creerDevis() {
-        System.out.println("\nCréation d'un nouveau devis");
-        int projectId = getIntInput("ID du projet associé : ");
-        Optional<Project> projectOpt = projectService.getProjectById(projectId);
-
-        if (projectOpt.isPresent()) {
-            Project project = projectOpt.get();
-            LocalDate dateEmission = LocalDate.now();
+//    private void creerDevis() {
+//        System.out.println("\nCréation d'un nouveau devis");
+//        int projectId = getIntInput("ID du projet associé : ");
+//        Optional<Project> projectOpt = projectService.getProjectById(projectId);
+//
+//        if (projectOpt.isPresent()) {
+//            Project project = projectOpt.get();
+//            LocalDate dateEmission = LocalDate.now();
+//            LocalDate dateValidite = getDateInput("Date de validité (JJ/MM/AAAA) : ");
+//
+//            Quote newQuote = new Quote(0, dateEmission, dateValidite, project);
+//            quoteService.createQuote(newQuote);
+//            System.out.println("Devis créé avec succès. Montant estimé : " + newQuote.getMontantEstime());
+//        } else {
+//            System.out.println("Projet non trouvé. Création du devis annulée.");
+//        }
+//    }
+        private void creerDevis() {
+            System.out.println("\nCréation d'un nouveau devis");
+            int projectId = getIntInput("ID du projet associé : ");
             LocalDate dateValidite = getDateInput("Date de validité (JJ/MM/AAAA) : ");
 
-            Quote newQuote = new Quote(0, dateEmission, dateValidite, project);
-            quoteService.createQuote(newQuote);
-            System.out.println("Devis créé avec succès. Montant estimé : " + newQuote.getMontantEstime());
-        } else {
-            System.out.println("Projet non trouvé. Création du devis annulée.");
-        }
-    }
-
-    private void afficherTousLesDevis() {
-        List<Quote> quotes = quoteService.getAllQuotes();
-        if (quotes.isEmpty()) {
-            System.out.println("Aucun devis trouvé.");
-        } else {
-            System.out.println("\nListe des devis :");
-            for (Quote quote : quotes) {
-                System.out.println(quote);
-                System.out.println("Validité : " + (quoteService.isQuoteValid(quote) ? "Valide" : "Expiré"));
-                System.out.println("--------------------");
+            try {
+                quoteService.createQuote(projectId, dateValidite);
+                System.out.println("Devis créé avec succès.");
+            } catch (IllegalArgumentException e) {
+                System.out.println("Erreur lors de la création du devis : " + e.getMessage());
+            } catch (RuntimeException e) {
+                System.out.println("Une erreur est survenue lors de la création du devis : " + e.getMessage());
             }
         }
+    private void afficherTousLesDevis() {
+        try {
+            List<Quote> quotes = quoteService.getAllQuotes();
+            if (quotes.isEmpty()) {
+                System.out.println("Aucun devis trouvé.");
+            } else {
+                System.out.println("\nListe des devis :");
+                for (Quote quote : quotes) {
+                    System.out.println(quote);
+                    System.out.println("Validité : " + (quoteService.isQuoteValid(quote) ? "Valide" : "Expiré"));
+                    System.out.println("Projet associé : " + (quote.getProject() != null ? quote.getProject().getNomProjet() : "Aucun"));
+                    System.out.println("--------------------");
+                }
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Une erreur est survenue lors de la récupération des devis : " + e.getMessage());
+            e.printStackTrace();
+        }
     }
-
     private void modifierDevis() {
         int id = getIntInput("Entrez l'ID du devis à modifier : ");
         Optional<Quote> quoteOpt = quoteService.getQuoteById(id);

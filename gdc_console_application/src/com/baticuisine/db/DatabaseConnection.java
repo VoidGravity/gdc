@@ -11,7 +11,7 @@ public class DatabaseConnection {
     private DatabaseConnection() {
         try {
             Class.forName("org.postgresql.Driver");
-            this.connection = DriverManager.getConnection("jdbc:postgresql://localhost:5434/baticuisine", "your_username", "your_password");
+            this.connection = DriverManager.getConnection("jdbc:postgresql://localhost:5444/baticuisine", "myuser", "AZERAZER1234");
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException("Database Connection Creation Failed : " + e.getMessage());
         }
@@ -20,7 +20,7 @@ public class DatabaseConnection {
     public Connection getConnection() {
         try {
             if (connection == null || connection.isClosed()) {
-                connection = DriverManager.getConnection("jdbc:postgresql://localhost:5434/baticuisine", "your_username", "your_password");
+                connection = DriverManager.getConnection("jdbc:postgresql://localhost:5444/baticuisine", "myuser", "AZERAZER1234");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error re-establishing database connection: " + e.getMessage());

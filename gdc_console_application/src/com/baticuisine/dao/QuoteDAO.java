@@ -1,5 +1,6 @@
 package com.baticuisine.dao;
 
+import com.baticuisine.model.Project;
 import com.baticuisine.model.Quote;
 import com.baticuisine.repository.QuoteRepository;
 import com.baticuisine.db.DatabaseConnection;
@@ -10,25 +11,26 @@ import java.util.List;
 import java.util.Optional;
 
 public class QuoteDAO implements QuoteRepository {
-    private Connection connection;
-
-    public QuoteDAO() {
-        try {
-            this.connection = DatabaseConnection.getInstance().getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error connecting to the database", e);
-        }
+    private Connection getConnection() throws SQLException {
+        return DatabaseConnection.getInstance().getConnection();
     }
 
     @Override
     public void save(Quote quote) {
         String sql = "INSERT INTO quotes (montant_estime, date_emission, date_validite, accepte, project_id) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             pstmt.setDouble(1, quote.getMontantEstime());
             pstmt.setDate(2, Date.valueOf(quote.getDateEmission()));
             pstmt.setDate(3, Date.valueOf(quote.getDateValidite()));
             pstmt.setBoolean(4, quote.isAccepte());
             pstmt.setInt(5, quote.getProject().getId());
+
+            System.out.println("Executing SQL: " + sql);
+            System.out.println("Parameters: " + quote.getMontantEstime() + ", " + quote.getDateEmission() + ", " +
+                    quote.getDateValidite() + ", " + quote.isAccepte() + ", " + quote.getProject().getId());
 
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
@@ -43,18 +45,22 @@ public class QuoteDAO implements QuoteRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Error saving quote", e);
+            throw new RuntimeException("Error saving quote: " + e.getMessage(), e);
         }
     }
 
     @Override
     public Optional<Quote> findById(int id) {
-        String sql = "SELECT * FROM quotes WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        String sql = "SELECT q.*, p.id as project_id, p.nom_projet FROM quotes q " +
+                "LEFT JOIN projects p ON q.project_id = p.id " +
+                "WHERE q.id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return Optional.of(extractQuoteFromResultSet(rs));
+                Quote quote = extractQuoteFromResultSet(rs);
+                return Optional.of(quote);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error finding quote by ID", e);
@@ -62,11 +68,32 @@ public class QuoteDAO implements QuoteRepository {
         return Optional.empty();
     }
 
+    private Quote extractQuoteFromResultSet(ResultSet rs) throws SQLException {
+        Quote quote = new Quote();
+        quote.setId(rs.getInt("id"));
+        quote.setMontantEstime(rs.getDouble("montant_estime"));
+        quote.setDateEmission(rs.getDate("date_emission").toLocalDate());
+        quote.setDateValidite(rs.getDate("date_validite").toLocalDate());
+        quote.setAccepte(rs.getBoolean("accepte"));
+
+        int projectId = rs.getInt("project_id");
+        if (!rs.wasNull()) {
+            Project project = new Project();
+            project.setId(projectId);
+            project.setNomProjet(rs.getString("nom_projet"));
+            quote.setProject(project);
+        }
+
+        return quote;
+    }
+
     @Override
     public List<Quote> findAll() {
         List<Quote> quotes = new ArrayList<>();
-        String sql = "SELECT * FROM quotes";
-        try (Statement stmt = connection.createStatement();
+        String sql = "SELECT q.*, p.id as project_id, p.nom_projet FROM quotes q " +
+                "LEFT JOIN projects p ON q.project_id = p.id";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 quotes.add(extractQuoteFromResultSet(rs));
@@ -81,7 +108,8 @@ public class QuoteDAO implements QuoteRepository {
     public List<Quote> findByProjectId(int projectId) {
         List<Quote> quotes = new ArrayList<>();
         String sql = "SELECT * FROM quotes WHERE project_id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, projectId);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -96,7 +124,8 @@ public class QuoteDAO implements QuoteRepository {
     @Override
     public void update(Quote quote) {
         String sql = "UPDATE quotes SET montant_estime = ?, date_emission = ?, date_validite = ?, accepte = ?, project_id = ? WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setDouble(1, quote.getMontantEstime());
             pstmt.setDate(2, Date.valueOf(quote.getDateEmission()));
             pstmt.setDate(3, Date.valueOf(quote.getDateValidite()));
@@ -112,7 +141,8 @@ public class QuoteDAO implements QuoteRepository {
     @Override
     public void delete(int id) {
         String sql = "DELETE FROM quotes WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -120,13 +150,5 @@ public class QuoteDAO implements QuoteRepository {
         }
     }
 
-    private Quote extractQuoteFromResultSet(ResultSet rs) throws SQLException {
-        Quote quote = new Quote();
-        quote.setId(rs.getInt("id"));
-        quote.setMontantEstime(rs.getDouble("montant_estime"));
-        quote.setDateEmission(rs.getDate("date_emission").toLocalDate());
-        quote.setDateValidite(rs.getDate("date_validite").toLocalDate());
-        quote.setAccepte(rs.getBoolean("accepte"));
-        return quote;
-    }
+
 }

@@ -22,10 +22,24 @@ public class QuoteService {
         this.componentRepository = componentRepository;
     }
 
-    public void createQuote(Quote quote) {
-        validateQuote(quote);
-        quote.setMontantEstime(calculateEstimatedAmount(quote.getProject()));
-        quoteRepository.save(quote);
+    public void createQuote(int projectId, LocalDate dateValidite) {
+        try {
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new IllegalArgumentException("Project not found with ID: " + projectId));
+
+            double montantEstime = calculateEstimatedAmount(project);
+            LocalDate dateEmission = LocalDate.now();
+
+            Quote quote = new Quote(montantEstime, dateEmission, dateValidite, project);
+            validateQuote(quote);
+
+            System.out.println("Quote to be saved: " + quote);
+            System.out.println("Project ID: " + quote.getProject().getId());
+
+            quoteRepository.save(quote);
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating quote: " + e.getMessage(), e);
+        }
     }
 
     public Optional<Quote> getQuoteById(int id) {
@@ -41,8 +55,24 @@ public class QuoteService {
     }
 
     public void updateQuote(Quote quote) {
-        validateQuote(quote);
-        quoteRepository.update(quote);
+        Optional<Quote> existingQuote = quoteRepository.findById(quote.getId());
+        if (existingQuote.isPresent()) {
+            Quote updatedQuote = existingQuote.get();
+            updatedQuote.setDateValidite(quote.getDateValidite());
+            // Only update other fields if they are not null or have changed
+            if (quote.getMontantEstime() != 0) {
+                updatedQuote.setMontantEstime(quote.getMontantEstime());
+            }
+            if (quote.getDateEmission() != null) {
+                updatedQuote.setDateEmission(quote.getDateEmission());
+            }
+            updatedQuote.setAccepte(quote.isAccepte());
+
+            validateQuote(updatedQuote);
+            quoteRepository.update(updatedQuote);
+        } else {
+            throw new IllegalArgumentException("Quote not found with ID: " + quote.getId());
+        }
     }
 
     public void deleteQuote(int id) {
@@ -51,7 +81,7 @@ public class QuoteService {
 
     private void validateQuote(Quote quote) {
         if (quote.getProject() == null) {
-            throw new IllegalArgumentException("Le devis doit être associé à un projet");
+            throw new IllegalArgumentException("Le devis doit être associé à un projet. ID du devis: " + quote.getId());
         }
         if (quote.getDateEmission() == null) {
             throw new IllegalArgumentException("La date d'émission ne peut pas être nulle");
@@ -62,7 +92,6 @@ public class QuoteService {
         if (quote.getDateValidite().isBefore(quote.getDateEmission())) {
             throw new IllegalArgumentException("La date de validité ne peut pas être antérieure à la date d'émission");
         }
-        // Add more validation as needed
     }
 
     private double calculateEstimatedAmount(Project project) {
@@ -74,14 +103,10 @@ public class QuoteService {
     }
 
     public void acceptQuote(int quoteId) {
-        Optional<Quote> quoteOpt = quoteRepository.findById(quoteId);
-        if (quoteOpt.isPresent()) {
-            Quote quote = quoteOpt.get();
-            quote.setAccepte(true);
-            quoteRepository.update(quote);
-        } else {
-            throw new IllegalArgumentException("Devis non trouvé avec l'ID : " + quoteId);
-        }
+        Quote quote = quoteRepository.findById(quoteId)
+                .orElseThrow(() -> new IllegalArgumentException("Devis non trouvé avec l'ID : " + quoteId));
+        quote.setAccepte(true);
+        quoteRepository.update(quote);
     }
 
     public boolean isQuoteValid(Quote quote) {
@@ -89,17 +114,13 @@ public class QuoteService {
     }
 
     public void extendQuoteValidity(int quoteId, LocalDate newValidityDate) {
-        Optional<Quote> quoteOpt = quoteRepository.findById(quoteId);
-        if (quoteOpt.isPresent()) {
-            Quote quote = quoteOpt.get();
-            if (newValidityDate.isAfter(quote.getDateValidite())) {
-                quote.setDateValidite(newValidityDate);
-                quoteRepository.update(quote);
-            } else {
-                throw new IllegalArgumentException("La nouvelle date de validité doit être postérieure à l'actuelle");
-            }
+        Quote quote = quoteRepository.findById(quoteId)
+                .orElseThrow(() -> new IllegalArgumentException("Devis non trouvé avec l'ID : " + quoteId));
+        if (newValidityDate.isAfter(quote.getDateValidite())) {
+            quote.setDateValidite(newValidityDate);
+            quoteRepository.update(quote);
         } else {
-            throw new IllegalArgumentException("Devis non trouvé avec l'ID : " + quoteId);
+            throw new IllegalArgumentException("La nouvelle date de validité doit être postérieure à l'actuelle");
         }
     }
 

@@ -10,20 +10,15 @@ import java.util.List;
 import java.util.Optional;
 
 public class ClientDAO implements ClientRepository {
-    private Connection connection;
-
-    public ClientDAO() {
-        try {
-            this.connection = DatabaseConnection.getInstance().getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error connecting to the database", e);
-        }
+    private Connection getConnection() {
+        return DatabaseConnection.getInstance().getConnection();
     }
 
     @Override
     public void save(Client client) {
         String sql = "INSERT INTO clients (nom, adresse, telephone, est_professionnel) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, client.getNom());
             pstmt.setString(2, client.getAdresse());
             pstmt.setString(3, client.getTelephone());
@@ -49,7 +44,8 @@ public class ClientDAO implements ClientRepository {
     @Override
     public Optional<Client> findById(int id) {
         String sql = "SELECT * FROM clients WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -65,7 +61,8 @@ public class ClientDAO implements ClientRepository {
     public List<Client> findAll() {
         List<Client> clients = new ArrayList<>();
         String sql = "SELECT * FROM clients";
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 clients.add(extractClientFromResultSet(rs));
@@ -79,7 +76,8 @@ public class ClientDAO implements ClientRepository {
     @Override
     public void update(Client client) {
         String sql = "UPDATE clients SET nom = ?, adresse = ?, telephone = ?, est_professionnel = ? WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, client.getNom());
             pstmt.setString(2, client.getAdresse());
             pstmt.setString(3, client.getTelephone());
@@ -94,7 +92,8 @@ public class ClientDAO implements ClientRepository {
     @Override
     public void delete(int id) {
         String sql = "DELETE FROM clients WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {

@@ -36,7 +36,10 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.BatiCuisineApplication.executor": "Run",
+    "Application.codes.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "database.data.extractors.current.export.id": "JSON-Groovy.json.groovy",
+    "database.data.extractors.current.id": "JSON-Groovy.json.groovy",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
@@ -68,7 +71,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1726736960826</updated>
-      <workItem from="1726736961860" duration="20011000" />
+      <workItem from="1726736961860" duration="40818000" />
     </task>
     <servers />
   </component>
