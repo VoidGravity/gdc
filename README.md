@@ -1,5 +1,11 @@
-Planification Trello : https://trello.com/b/vLKKodCh
-Presentation : https://www.canva.com/design/DAF8kW55_cU/qrMlVUhpbsSdrvGvOT5Kiw/edit?utm_content=DAF8kW55_cU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+-- Planification Trello : https://trello.com/b/vLKKodCh
+
+-- Presentation : https://www.canva.com/design/DAF8kW55_cU/qrMlVUhpbsSdrvGvOT5Kiw/edit?utm_content=DAF8kW55_cU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
+-- Class Diagram : 
+
+![image](https://github.com/user-attachments/assets/965df1b0-a095-443c-8ebe-669a9edd98f2)
+
 
 # BatiCuisine Application
 
