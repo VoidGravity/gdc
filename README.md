@@ -1,5 +1,5 @@
 Planification Trello : https://trello.com/b/vLKKodCh
-
+Presentation : https://www.canva.com/design/DAF8kW55_cU/qrMlVUhpbsSdrvGvOT5Kiw/edit?utm_content=DAF8kW55_cU&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 # BatiCuisine Application
 
