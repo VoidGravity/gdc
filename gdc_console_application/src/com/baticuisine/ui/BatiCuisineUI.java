@@ -264,10 +264,12 @@ public class BatiCuisineUI {
 //        }
 //    }
     private void afficherTousLesProjets() {
+
         List<Project> projects = projectService.getAllProjects();
         if (projects.isEmpty()) {
             System.out.println("Aucun projet trouvé.");
         } else {
+
             System.out.println("\nListe des projets :");
             for (Project project : projects) {
                 //showing each detial sepratlu
@@ -275,7 +277,6 @@ public class BatiCuisineUI {
                 System.out.println("Nom du projet : " + project.getNomProjet());
                 System.out.println("Marge bénéficiaire : " + project.getMargeBeneficiaire());
                 System.out.println("Etat du projet : " + project.getEtatProjet());
-
                 System.out.println("Client : " + (project.getClient() != null ? project.getClient().getNom() : "Aucun client associé"));
                 System.out.println("Composants :");
                 if (project.getComponents() != null && !project.getComponents().isEmpty()) {

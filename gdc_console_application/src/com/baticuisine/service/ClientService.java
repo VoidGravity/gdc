@@ -46,7 +46,7 @@ public class ClientService {
         if (client.getTelephone() == null || client.getTelephone().trim().isEmpty()) {
             throw new IllegalArgumentException("Le numéro de téléphone du client ne peut pas être vide");
         }
-        // Add more validation as needed
+
     }
 
     public double calculateClientDiscount(Client client) {
